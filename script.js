@@ -8,15 +8,16 @@ const width = window.innerWidth, height = window.innerHeight
 export default class Moon {
     constructor(options) {
         this.scene = new THREE.Scene()
-        this.scene.background = new THREE.Color(0x00000)
-
+        // this.scene.background = new THREE.Color(0x00000)
+        
         this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000)
         this.camera.position.z = 15
         this.camera.position.y = 0
         this.scene.add(this.camera)
-
+        
         this.textureLoader = new THREE.TextureLoader()
         this.textures = this.loadTextures()
+        this.scene.background = this.nightSky
         
         this.ambientLight = new THREE.AmbientLight(0xffffff, 2)
         this.pointLight = new THREE.PointLight(0xffffff, 4)
@@ -107,6 +108,9 @@ export default class Moon {
        this.moonDisplacementTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_height.png")
        this.moonNormalTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_normal.png")
        this.moonRoughnessTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_roughness.png")
+       this.nightSky = this.textureLoader.load("/nightsky.jpg")
+       this.nightSky.colorSpace = THREE.SRGBColorSpace
+
     }
 
     setUpGui() {
