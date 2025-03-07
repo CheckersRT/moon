@@ -14,12 +14,13 @@ export default class Moon {
         this.camera.position.y = 1
         this.scene.add(this.camera)
 
-        this.ambientLight = new THREE.AmbientLight(0xffff00, 2)
+        this.textureLoader = new THREE.TextureLoader()
+        this.textures = this.loadTextures()
+
+        this.ambientLight = new THREE.AmbientLight(0xffffff, 2)
         this.scene.add(this.ambientLight)
 
         this.controls = new OrbitControls(this.camera, canvas)
-
-        this.textureLoader = new THREE.TextureLoader()
 
         this.moon = this.addMoon()
 
@@ -37,13 +38,25 @@ export default class Moon {
     }
 
     addMoon() {
-
-
+        
         this.geometry = new THREE.TorusGeometry(10, 3, 16, 100 )
         this.material = new THREE.MeshStandardMaterial()
+        this.material.map = this.moonColorTexture
+        this.material.aoMap = this.moonAoTexture
+        this.material.displacementMap = this.moonDisplacementTexture
+        this.material.normalMap = this.moonNormalTexture
+        this.material.roughnesslMap = this.moonRoughnessTexture
         this.mesh = new THREE.Mesh(this.geometry, this.material)
         this.scene.add(this.mesh)
         return this.mesh
+    }
+
+    loadTextures() {
+       this.moonColorTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_basecolor.png")
+       this.moonAoTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_ambientOcclusion.png")
+       this.moonDisplacementTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_height.png")
+       this.moonNormalTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_normal.png")
+       this.moonRoughnessTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_roughness.png")
     }
 }
 
