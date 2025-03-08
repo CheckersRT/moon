@@ -26,7 +26,7 @@ class SolarCells extends THREE.Object3D {
 
         this.params = {
             metalness: 0.865,
-            roughness: 0.21,
+            roughness: 0.51,
             sheen: 0.5,
             sheenRoughness: 0.5,
             clearcoat: 0.5,

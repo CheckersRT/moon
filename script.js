@@ -144,9 +144,9 @@ export default class Moon {
         const orbitSpeed = 0.0002 // Adjust speed of orbit
         const angle = time * orbitSpeed // Angle based on time
     
-        // this.satelite.position.x = this.moon.position.x + orbitRadius * Math.cos(angle) * 2
-        // this.satelite.position.z = this.moon.position.z + orbitRadius * Math.sin(angle)
-        // this.satelite.position.y = this.moon.position.y + orbitRadius * Math.sin(angle) / 2
+        this.satelite.position.x = this.moon.position.x + orbitRadius * Math.cos(angle) * 2
+        this.satelite.position.z = this.moon.position.z + orbitRadius * Math.sin(angle)
+        this.satelite.position.y = this.moon.position.y + orbitRadius * Math.sin(angle) / 2
 
         this.satelite.lookAt(this.satelite.children.find((child) => child.name === "fakeSun").position)
 
@@ -174,7 +174,7 @@ export default class Moon {
             this.redStars.stars.instanceMatrix.needsUpdate = true
         }
 
-        this.camera.lookAt(this.satelite.position)
+        // this.camera.lookAt(this.satelite.position)
 
         this.scene.traverse(this.nonBloomed)
 
