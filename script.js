@@ -187,13 +187,13 @@ export default class Moon {
 
     addMoon() {
         this.moonParams = {
-            metalness: 0.5,
-            roughness: 0.8,
+            metalness: 0.79,
+            roughness: 0.95,
             displacementScale: 0.05,
         }
         
         this.geometry = new THREE.SphereGeometry(2, 128, 128 )
-        // this.geometry = new THREE.TorusGeometry(2, 1, 512, 512 )
+        // this.geometry = new THREE.TorusGeometry(2, 1, 128, 128 ) // use for website
         this.material = new THREE.MeshStandardMaterial()
         this.material.metalness = this.moonParams.metalness
         this.material.roughness = this.moonParams.roughness
