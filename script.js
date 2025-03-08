@@ -8,6 +8,7 @@ import { AfterimagePass } from "three/examples/jsm/Addons.js"
 import { OutputPass } from "three/examples/jsm/Addons.js"
 import { ShaderPass } from "three/examples/jsm/Addons.js"
 import Satelite from "./satelite"
+import RedStars from "./RedStar"
 
 const canvas = document.querySelector("canvas.webgl")
 const width = window.innerWidth, height = window.innerHeight
@@ -15,10 +16,9 @@ const width = window.innerWidth, height = window.innerHeight
 export default class Moon {
     constructor(options) {
         this.scene = new THREE.Scene()
-        // this.scene.background = new THREE.Color(0x00000)
         
         this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000)
-        this.camera.position.z = 22
+        this.camera.position.z = 24
         this.camera.position.y = 0
         this.scene.add(this.camera)
         
@@ -53,10 +53,14 @@ export default class Moon {
         
         this.renderScene = new RenderPass(this.scene, this.camera)
         this.bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 1, 0.5, 0.25)
+        this.starTrailPass = new AfterimagePass()
+        this.starTrailPass.uniforms["damp"].value = 0.8; 
+
         
         this.bloomComposer = new EffectComposer(this.renderer)
         this.bloomComposer.addPass(this.renderScene)
         this.bloomComposer.addPass(this.bloomPass)
+        this.bloomComposer.addPass(this.starTrailPass)
         this.bloomComposer.renderToScreen = false
         this.bloomParams = {
             threshold: 1,
@@ -97,19 +101,21 @@ export default class Moon {
         this.outputPass = new OutputPass()
         this.finalComposer.addPass(this.outputPass)
         
-        this.BLOOM_SCENE = 1
+        this.STAR_SCENE = 1
         this.bloomLayer = new THREE.Layers()
-        this.bloomLayer.set(this.BLOOM_SCENE)
+        this.bloomLayer.set(this.STAR_SCENE)
 
         this.nonBloomed = this.nonBloomed.bind(this)
         this.restoreMaterial = this.restoreMaterial.bind(this)
 
-        
         this.darkMaterial = new THREE.MeshBasicMaterial({color: 0x000000})
         this.materials = []
         
         this.stars = this.addStars()
         this.scene.add(...this.stars)
+        this.lastStarTriggertime = 0
+        this.solidStar = null
+
         this.moon = this.addMoon()
         this.scene.add(this.moon)
         this.satelite = new Satelite(this.gui)
@@ -132,7 +138,6 @@ export default class Moon {
     }
 
     animate(time) {
-
         this.moon.rotation.y = time/50000
 
         const orbitRadius = 10 // Adjust orbit distance
@@ -144,6 +149,35 @@ export default class Moon {
         this.satelite.position.y = this.moon.position.y + orbitRadius * Math.sin(angle) / 2
 
         this.satelite.lookAt(this.satelite.children.find((child) => child.name === "fakeSun").position)
+
+        if (time - this.lastStarTriggertime > 2000) {
+            this.lastStarTriggertime = time
+            if(this.solidStar) this.solidStar.material.wireframe = true
+            const selectedStar = this.redStars[Math.floor(this.redStars.length * Math.random())]
+            this.solidStar = selectedStar
+            shootingStar(selectedStar)
+        }
+
+        if(this.solidStar && this.solidStar.userData.shooting) {
+            // this.solidStar.rotation.z = time/100
+
+            const { destVector, startPosition, startTime, duration} = this.solidStar.userData.shooting
+            const currentTime = performance.now();
+            const elapsedTime = currentTime - startTime;
+            const t = Math.min(elapsedTime / duration, 1); // Normalize to [0,1]
+    
+            // Smooth interpolation (ease in-out effect)
+            const easeT = t * (2 - t); 
+    
+            this.solidStar.position.lerpVectors(startPosition, startPosition.clone().add(destVector), easeT);
+
+            this.solidStar.lookAt(new THREE.Vector3(0, 0, 0));
+
+            if (t >= 1) {
+                delete this.solidStar.userData.shooting;
+            }
+
+        }
 
         this.scene.traverse(this.nonBloomed)
 
@@ -161,7 +195,7 @@ export default class Moon {
             displacementScale: 0.05,
         }
         
-        this.geometry = new THREE.SphereGeometry(2, 512, 512 )
+        this.geometry = new THREE.SphereGeometry(2, 128, 128 )
         // this.geometry = new THREE.TorusGeometry(2, 1, 512, 512 )
         this.material = new THREE.MeshStandardMaterial()
         this.material.metalness = this.moonParams.metalness
@@ -181,7 +215,7 @@ export default class Moon {
 
         this.gui.add(this.material, "metalness").min(0.0001).max(1).step(0.0001)
         this.gui.add(this.material, "roughness").min(0.0001).max(1).step(0.0001)
-        this.gui.add(this.material, "displacementScale").min(0).max(0.1).step(0.001)
+        // this.gui.add(this.material, "displacementScale").min(0).max(0.1).step(0.001)
 
         return this.mesh
     }
@@ -190,13 +224,15 @@ export default class Moon {
 
         const stars = []
 
-        const yellowStars = createYellowStars(80)
-        const redStars = createRedStars(70)
-        const whiteStars = createWhiteStars(80)
+        this.yellowStars = createYellowStars(80)
+        this.redStars = createRedStars(70)
+        this.whiteStars = createWhiteStars(80)
 
-        stars.push(...yellowStars, ...redStars, ...whiteStars)
+        console.log("red stars", this.redStars, "yellow stars", this.yellowStars)
+
+        stars.push(...this.yellowStars, ...this.redStars, ...this.whiteStars)
         stars.forEach((star) => {
-            star.layers.enable(this.BLOOM_SCENE)
+            star.layers.enable(this.STAR_SCENE)
         })
 
         return stars
@@ -241,6 +277,22 @@ export default class Moon {
 new Moon({canvas})
 
 
+function shootingStar(star) {
+    // star.material.wireframe = !star.material.wireframe
+
+    const maxDistance = 6;
+    const destVector = new THREE.Vector3().randomDirection().multiplyScalar(maxDistance);
+    const startPosition = star.position.clone(); // Store start position
+    const duration = 700; // Time in milliseconds (2s)
+
+    star.userData.shooting = {
+        destVector,
+        startPosition,
+        startTime: performance.now(),
+        duration,
+    }
+}
+
 function createYellowStars(quantity) {
 
     const stars = []
@@ -270,38 +322,11 @@ function createRedStars(quantity) {
 
     const stars = []
 
-    const starParams = {
-        emissiveIntensity: 4,
-        scalar: 18,
-    }
-
-    const vectors = []
-    const points = 5
-    const extrudeSettings = {
-        depth: 0.005, 
-        bevelEnabled: false,
-    }
-
-    for (let i = 0; i < points * 2; i++) {
-        const length = i % 2 == 1 ? 0.1 : 0.05
-        const a = i / points * Math.PI;
-
-		vectors.push( new THREE.Vector2( Math.cos( a ) * length, Math.sin( a ) * length ) );
-    }
-
-    const shape = new THREE.Shape(vectors)
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
-    const material = new THREE.MeshStandardMaterial()
-    const star = new THREE.Mesh(geometry, material)
-    material.wireframe = true
-
-
-    material.emissive = new THREE.Color("red")
-    material.emissiveIntensity = starParams.emissiveIntensity
+    const scalar = 17
 
     for(let i = 0; i < quantity; i++ ){
-        const direction = new THREE.Vector3().randomDirection().multiplyScalar(starParams.scalar)
-        const newStar = star.clone()
+        const direction = new THREE.Vector3().randomDirection().multiplyScalar(scalar)
+        const newStar = new RedStars()
         newStar.position.copy(direction)
         newStar.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -317,7 +342,7 @@ function createWhiteStars(quantity) {
 
     const starParams = {
         emissiveIntensity: 4,
-        scalar: 18,
+        scalar: 19,
     }
 
     const vectors = []
@@ -354,3 +379,4 @@ function createWhiteStars(quantity) {
 
     return stars
 }
+
