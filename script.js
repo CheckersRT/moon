@@ -114,7 +114,7 @@ export default class Moon {
         this.stars = this.addStars()
         this.scene.add(...this.stars)
         this.lastStarTriggertime = 0
-        this.solidStar = null
+        this.shootingStar = null
 
         this.moon = this.addMoon()
         this.scene.add(this.moon)
@@ -144,40 +144,37 @@ export default class Moon {
         const orbitSpeed = 0.0002 // Adjust speed of orbit
         const angle = time * orbitSpeed // Angle based on time
     
-        this.satelite.position.x = this.moon.position.x + orbitRadius * Math.cos(angle) * 2
-        this.satelite.position.z = this.moon.position.z + orbitRadius * Math.sin(angle)
-        this.satelite.position.y = this.moon.position.y + orbitRadius * Math.sin(angle) / 2
+        // this.satelite.position.x = this.moon.position.x + orbitRadius * Math.cos(angle) * 2
+        // this.satelite.position.z = this.moon.position.z + orbitRadius * Math.sin(angle)
+        // this.satelite.position.y = this.moon.position.y + orbitRadius * Math.sin(angle) / 2
 
         this.satelite.lookAt(this.satelite.children.find((child) => child.name === "fakeSun").position)
 
         if (time - this.lastStarTriggertime > 2000) {
             this.lastStarTriggertime = time
-            if(this.solidStar) this.solidStar.material.wireframe = true
-            const selectedStar = this.redStars[Math.floor(this.redStars.length * Math.random())]
-            this.solidStar = selectedStar
-            shootingStar(selectedStar)
+            this.redStars.triggerShootingStar()
+            this.shootingStar = this.redStars.shootingStar
         }
 
-        if(this.solidStar && this.solidStar.userData.shooting) {
-            // this.solidStar.rotation.z = time/100
+        if(this.shootingStar && this.redStars.shootingParams) {
+            this.shootingStar.rotation.z = time/100
 
-            const { destVector, startPosition, startTime, duration} = this.solidStar.userData.shooting
+            const { index, destVector, startPosition, startTime, duration} = this.redStars.shootingParams
             const currentTime = performance.now();
             const elapsedTime = currentTime - startTime;
             const t = Math.min(elapsedTime / duration, 1); // Normalize to [0,1]
-    
-            // Smooth interpolation (ease in-out effect)
+            
             const easeT = t * (2 - t); 
-    
-            this.solidStar.position.lerpVectors(startPosition, startPosition.clone().add(destVector), easeT);
+            
+            this.shootingStar.position.lerpVectors(startPosition, startPosition.clone().add(destVector), easeT);
+            this.shootingStar.quaternion.setFromEuler(this.shootingStar.rotation);
 
-            this.solidStar.lookAt(new THREE.Vector3(0, 0, 0));
-
-            if (t >= 1) {
-                delete this.solidStar.userData.shooting;
-            }
-
+            this.shootingStar.updateMatrix()
+            this.redStars.stars.setMatrixAt(index, this.shootingStar.matrix)
+            this.redStars.stars.instanceMatrix.needsUpdate = true
         }
+
+        this.camera.lookAt(this.satelite.position)
 
         this.scene.traverse(this.nonBloomed)
 
@@ -230,7 +227,7 @@ export default class Moon {
 
         console.log("red stars", this.redStars, "yellow stars", this.yellowStars)
 
-        stars.push(...this.yellowStars, ...this.redStars, ...this.whiteStars)
+        stars.push(...this.yellowStars, this.redStars, ...this.whiteStars)
         stars.forEach((star) => {
             star.layers.enable(this.STAR_SCENE)
         })
@@ -277,22 +274,6 @@ export default class Moon {
 new Moon({canvas})
 
 
-function shootingStar(star) {
-    // star.material.wireframe = !star.material.wireframe
-
-    const maxDistance = 6;
-    const destVector = new THREE.Vector3().randomDirection().multiplyScalar(maxDistance);
-    const startPosition = star.position.clone(); // Store start position
-    const duration = 700; // Time in milliseconds (2s)
-
-    star.userData.shooting = {
-        destVector,
-        startPosition,
-        startTime: performance.now(),
-        duration,
-    }
-}
-
 function createYellowStars(quantity) {
 
     const stars = []
@@ -320,18 +301,20 @@ function createYellowStars(quantity) {
 
 function createRedStars(quantity) {
 
-    const stars = []
+    const stars = new RedStars()
 
     const scalar = 17
 
-    for(let i = 0; i < quantity; i++ ){
-        const direction = new THREE.Vector3().randomDirection().multiplyScalar(scalar)
-        const newStar = new RedStars()
-        newStar.position.copy(direction)
-        newStar.lookAt(new THREE.Vector3(0, 0, 0));
 
-        stars.push(newStar)
-    }
+
+    // for(let i = 0; i < quantity; i++ ){
+    //     const direction = new THREE.Vector3().randomDirection().multiplyScalar(scalar)
+    //     const newStar = new RedStars()
+    //     newStar.position.copy(direction)
+    //     newStar.lookAt(new THREE.Vector3(0, 0, 0));
+
+    //     stars.push(newStar)
+    // }
 
     return stars
 }

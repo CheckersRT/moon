@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import GUI from "lil-gui"
+import { clearcoatRoughness, sheenRoughness } from "three/tsl"
 
 export default class Satelite extends THREE.Object3D {
 
@@ -21,20 +22,50 @@ class SolarCells extends THREE.Object3D {
     constructor(gui) {
         super()
         this.textureLoader = new THREE.TextureLoader()
-        this.loadTextures()
+        this.textures = this.loadTextures()
 
+        this.params = {
+            metalness: 0.865,
+            roughness: 0.21,
+            sheen: 0.5,
+            sheenRoughness: 0.5,
+            clearcoat: 0.5,
+            clearcoatRoughness: 0.5,
+        }
         this.geometry = new THREE.PlaneGeometry(3, 0.5, 16, 4)
-        this.material = new THREE.MeshBasicMaterial({map: this.colorTexture, side: THREE.DoubleSide})
+        this.material = new THREE.MeshPhysicalMaterial({map: this.textures.albedo, side: THREE.DoubleSide, metalnessMap: this.textures.metallic})
+        this.material.metalness = this.params.metalness
+        this.material.roughness = this.params.roughness
+        this.material.sheen = this.params.sheen
+        this.material.sheenRoughness = this.params.sheenRoughness
+        this.material.sheenColor.set(1, 1, 1)
+        this.material.clearcoat = this.params.clearcoat
+
+        this.material.needsUpdate = true
+
+        gui.add(this.params, "metalness", 0.0, 1.0).step(0.001).name("metalness").onChange((value) => {
+            this.material.metalness = value
+        })
+        gui.add(this.params, "roughness", 0.0, 1.0).step(0.001).name("roughness").onChange((value) => {
+            this.material.roughness = value
+        })
+
         this.mesh = new THREE.Mesh(this.geometry, this.material)
         this.add(this.mesh)
         return this
     }
     
     loadTextures() {
-        this.colorTexture = this.textureLoader.load("solar_cells/small/SolarCells_512_albedo.png")
-        this.colorTexture.colorSpace = THREE.SRGBColorSpace
-        this.colorTexture.repeat.set(3, 0.6)
-        this.colorTexture.wrapS = THREE.RepeatWrapping
+        const textures = {}
+        const textureNames = ["albedo", "ao", "height", "normal", "metallic", "roughness"];
+        textureNames.forEach((name) => {
+            const texture = this.textureLoader.load(`solar_cells/small/SolarCells_512_${name}.png`)
+            texture.repeat.set(3, 0.6)
+            texture.wrapS = THREE.RepeatWrapping
+            textures[name] = texture
+        })
+        textures.albedo.colorSpace = THREE.SRGBColorSpace
+        return textures
     }
 }
 
