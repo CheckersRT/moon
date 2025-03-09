@@ -8,7 +8,7 @@ import { AfterimagePass } from "three/examples/jsm/Addons.js"
 import { OutputPass } from "three/examples/jsm/Addons.js"
 import { ShaderPass } from "three/examples/jsm/Addons.js"
 import Satelite from "./satelite"
-import RedStars from "./RedStar"
+import RedStars from "./RedStar.ts"
 
 const canvas = document.querySelector("canvas.webgl")
 const width = window.innerWidth, height = window.innerHeight
@@ -170,8 +170,8 @@ export default class Moon {
             this.shootingStar.quaternion.setFromEuler(this.shootingStar.rotation);
 
             this.shootingStar.updateMatrix()
-            this.redStars.stars.setMatrixAt(index, this.shootingStar.matrix)
-            this.redStars.stars.instanceMatrix.needsUpdate = true
+            this.redStars.stars.mesh.setMatrixAt(index, this.shootingStar.matrix)
+            this.redStars.stars.mesh.instanceMatrix.needsUpdate = true
         }
 
         // this.camera.lookAt(this.satelite.position)

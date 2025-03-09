@@ -3,7 +3,20 @@ import Stars from "./Stars"
 
 
 export default class RedStars extends THREE.Object3D {
-    constructor(numStars) {
+    stars: Stars
+    starParams: {}
+    numStars: number
+    extrudeSettings: {}
+    points: number
+    vectors: THREE.Vector2[]
+    shape: THREE.Shape
+    geometry: THREE.BufferGeometry
+    material: THREE.MeshStandardMaterial
+    shootingStar: THREE.Object3D
+    shootingParams: {}
+
+
+    constructor(numStars: number) {
         super()
         this.starParams = {
             emissiveIntensity: 6,
@@ -12,6 +25,8 @@ export default class RedStars extends THREE.Object3D {
             metalness: 0,
         }
         this.numStars = numStars
+        this.shootingStar = new THREE.Object3D()
+        this.shootingParams = {}
         this.points = 5
         this.extrudeSettings = {
             depth: 0.005, 
@@ -34,7 +49,7 @@ export default class RedStars extends THREE.Object3D {
         this.material.roughness = this.starParams.roughness
         this.material.metalness = this.starParams.metalness
 
-        this.stars = new Stars(this.geometry, this.material, this.numStars)
+        this.stars = new Stars({geometry: this.geometry, material: this.material, numStars: this.numStars, scalar: this.starParams.scalar})
         console.log("stars", this.stars)
 
         // this.stars = new THREE.InstancedMesh(this.geometry, this.material, this.numStars)
@@ -59,7 +74,6 @@ export default class RedStars extends THREE.Object3D {
         // this.stars.instanceMatrix.needsUpdate = true
         // this.stars.layers.enable(1)
         this.add(this.stars)
-
         return this
     }
 

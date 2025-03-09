@@ -5,7 +5,6 @@ interface StarParams {
     material: THREE.Material
     numStars: number
     scalar: number
-
 }
 
 export default class Stars extends THREE.Object3D {
