@@ -8,7 +8,9 @@ import { AfterimagePass } from "three/examples/jsm/Addons.js"
 import { OutputPass } from "three/examples/jsm/Addons.js"
 import { ShaderPass } from "three/examples/jsm/Addons.js"
 import Satelite from "./satelite.js"
-import RedStars from "./RedStar.ts"
+import RedStars from "./Stars/RedStars.ts"
+import YellowStars from "./Stars/YellowStars.ts"
+import WhiteStars from "./Stars/WhiteStars.ts"
 
 const canvas = document.querySelector("canvas.webgl")
 const width = window.innerWidth, height = window.innerHeight
@@ -221,13 +223,13 @@ export default class Moon {
 
         const stars = []
 
-        this.yellowStars = createYellowStars(80)
-        this.redStars = createRedStars(70)
-        this.whiteStars = createWhiteStars(80)
+        this.yellowStars = new YellowStars(80)
+        this.redStars = new RedStars(70)
+        this.whiteStars = new WhiteStars(80)
 
         console.log("red stars", this.redStars, "yellow stars", this.yellowStars)
 
-        stars.push(...this.yellowStars, this.redStars, ...this.whiteStars)
+        stars.push(this.yellowStars, this.redStars, this.whiteStars)
         stars.forEach((star) => {
             star.layers.enable(this.STAR_SCENE)
         })
@@ -247,9 +249,6 @@ export default class Moon {
        this.moonRoughnessTexture = this.textureLoader.load("/Moon_002_SD/Moon_002_roughness.png")
        this.nightSky = this.textureLoader.load("/nightsky.jpg")
        this.nightSky.colorSpace = THREE.SRGBColorSpace
-
-
-
     }
 
     setUpGui() {
@@ -296,31 +295,6 @@ function createYellowStars(quantity) {
     }
 
     return stars
-}
-
-class Stars extends THREE.Object3D {
-    constructor(params) {
-        this.mesh = new THREE.InstancedMesh(params.geometry, params.material, params.numStars)
-        this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
-
-        this.dummyStars = []
-        for (let i = 0; i < params.numStars; i++) {
-            const dummy = new THREE.Object3D()
-            const direction = new THREE.Vector3().randomDirection().multiplyScalar(params.scalar)
-            dummy.position.set(
-                direction.x,
-                direction.y,
-                direction.z
-            )
-            dummy.lookAt(new THREE.Vector3(0, 0, 0));
-            dummy.updateMatrix()
-            this.mesh.setMatrixAt(i, dummy.matrix)
-            this.dummyStars.push(dummy)
-        }
-        this.mesh.instanceMatrix.needsUpdate = true
-        this.mesh.layers.enable(1)
-        this.add(this.mesh)
-    }
 }
 
 

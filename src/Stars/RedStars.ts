@@ -51,28 +51,6 @@ export default class RedStars extends THREE.Object3D {
 
         this.stars = new Stars({geometry: this.geometry, material: this.material, numStars: this.numStars, scalar: this.starParams.scalar})
         console.log("stars", this.stars)
-
-        // this.stars = new THREE.InstancedMesh(this.geometry, this.material, this.numStars)
-        // this.stars.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Allow frequent updates
-
-        // this.dummyStars = []
-        // for (let i = 0; i < this.numStars; i++) {
-        //     const dummy = new THREE.Object3D()
-        //     const direction = new THREE.Vector3().randomDirection().multiplyScalar(this.starParams.scalar)
-        //     console.log(direction, "direction")
-        //     dummy.position.set(
-        //         direction.x,
-        //         direction.y,
-        //         direction.z
-        //     )
-        //     dummy.lookAt(new THREE.Vector3(0, 0, 0));
-        //     dummy.updateMatrix()
-        //     this.stars.setMatrixAt(i, dummy.matrix)
-        //     this.dummyStars.push(dummy)
-        // }
-
-        // this.stars.instanceMatrix.needsUpdate = true
-        // this.stars.layers.enable(1)
         this.add(this.stars)
         return this
     }
