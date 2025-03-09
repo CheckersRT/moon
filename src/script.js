@@ -7,7 +7,7 @@ import { UnrealBloomPass } from "three/examples/jsm/Addons.js"
 import { AfterimagePass } from "three/examples/jsm/Addons.js"
 import { OutputPass } from "three/examples/jsm/Addons.js"
 import { ShaderPass } from "three/examples/jsm/Addons.js"
-import Satelite from "./satelite"
+import Satelite from "./satelite.js"
 import RedStars from "./RedStar.ts"
 
 const canvas = document.querySelector("canvas.webgl")
