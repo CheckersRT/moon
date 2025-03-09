@@ -46,7 +46,7 @@ export default class Moon {
         this.controls.maxPolarAngle = Math.PI /2
         this.controls.minPolarAngle = Math.PI /2
         this.controls.maxDistance = 22
-        this.controls.minDistance = 1
+        this.controls.minDistance = 4
 
         this.renderer = new THREE.WebGLRenderer({canvas: options.canvas})
         this.renderer.setSize(width, height)
