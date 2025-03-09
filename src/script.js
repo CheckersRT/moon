@@ -20,8 +20,11 @@ export default class Moon {
         this.scene = new THREE.Scene()
         
         this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000)
-        this.camera.position.z = 24
-        this.camera.position.y = 0
+        const radius = 24; 
+        const angle = 1.5;
+        this.camera.position.x = Math.sin(angle) * radius;
+        this.camera.position.z = Math.cos(angle) * radius;
+        this.camera.position.y = 0;
         this.scene.add(this.camera)
         
         this.textureLoader = new THREE.TextureLoader()
@@ -220,20 +223,11 @@ export default class Moon {
     }
 
     addStars() {
-
         const stars = []
-
         this.yellowStars = new YellowStars(80)
         this.redStars = new RedStars(70)
         this.whiteStars = new WhiteStars(80)
-
-        console.log("red stars", this.redStars, "yellow stars", this.yellowStars)
-
         stars.push(this.yellowStars, this.redStars, this.whiteStars)
-        stars.forEach((star) => {
-            star.layers.enable(this.STAR_SCENE)
-        })
-
         return stars
     }
 
@@ -272,93 +266,4 @@ export default class Moon {
 
 new Moon({canvas})
 
-
-function createYellowStars(quantity) {
-
-    const stars = []
-
-    const starParams = {
-        emissiveIntensity: 4,
-        scalar: 18,
-    }
-    const geometry = new THREE.SphereGeometry(0.05, 16, 16)
-    const material = new THREE.MeshStandardMaterial()
-    const star = new THREE.Mesh(geometry, material)
-    material.emissive = new THREE.Color("yellow")
-    material.emissiveIntensity = starParams.emissiveIntensity
-
-    for(let i = 0; i < quantity; i++ ){
-        const direction = new THREE.Vector3().randomDirection().multiplyScalar(starParams.scalar)
-        const newStar = star.clone()
-        newStar.position.copy(direction)
-        stars.push(newStar)
-    }
-
-    return stars
-}
-
-
-function createRedStars(quantity) {
-
-    const stars = new RedStars(80)
-
-    const scalar = 17
-
-
-
-    // for(let i = 0; i < quantity; i++ ){
-    //     const direction = new THREE.Vector3().randomDirection().multiplyScalar(scalar)
-    //     const newStar = new RedStars()
-    //     newStar.position.copy(direction)
-    //     newStar.lookAt(new THREE.Vector3(0, 0, 0));
-
-    //     stars.push(newStar)
-    // }
-
-    return stars
-}
-
-function createWhiteStars(quantity) {
-
-    const stars = []
-
-    const starParams = {
-        emissiveIntensity: 4,
-        scalar: 19,
-    }
-
-    const vectors = []
-    const points = 4
-    const extrudeSettings = {
-        depth: 0.005, 
-        bevelEnabled: false,
-    }
-
-    for (let i = 0; i < points * 2; i++) {
-        const length = i % 2 == 1 ? i % 4 == 1 ? 0.1 : 0.05 : 0.025
-        const a = i / points * Math.PI;
-
-		vectors.push( new THREE.Vector2( Math.cos( a ) * length, Math.sin( a ) * length ) );
-    }
-
-    const shape = new THREE.Shape(vectors)
-    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
-    const material = new THREE.MeshStandardMaterial()
-    const star = new THREE.Mesh(geometry, material)
-    // material.wireframe = true
-
-    material.emissive = new THREE.Color("white")
-    material.emissiveIntensity = starParams.emissiveIntensity
-
-    for(let i = 0; i < quantity; i++ ){
-        const direction = new THREE.Vector3().randomDirection().multiplyScalar(starParams.scalar)
-        const newStar = star.clone()
-        newStar.position.copy(direction)
-        newStar.lookAt(new THREE.Vector3(0, 0, 0));
-
-        stars.push(newStar)
-    }
-
-    return stars
-}
 
