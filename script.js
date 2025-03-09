@@ -298,10 +298,35 @@ function createYellowStars(quantity) {
     return stars
 }
 
+class Stars extends THREE.Object3D {
+    constructor(params) {
+        this.mesh = new THREE.InstancedMesh(params.geometry, params.material, params.numStars)
+        this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+
+        this.dummyStars = []
+        for (let i = 0; i < params.numStars; i++) {
+            const dummy = new THREE.Object3D()
+            const direction = new THREE.Vector3().randomDirection().multiplyScalar(params.scalar)
+            dummy.position.set(
+                direction.x,
+                direction.y,
+                direction.z
+            )
+            dummy.lookAt(new THREE.Vector3(0, 0, 0));
+            dummy.updateMatrix()
+            this.mesh.setMatrixAt(i, dummy.matrix)
+            this.dummyStars.push(dummy)
+        }
+        this.mesh.instanceMatrix.needsUpdate = true
+        this.mesh.layers.enable(1)
+        this.add(this.mesh)
+    }
+}
+
 
 function createRedStars(quantity) {
 
-    const stars = new RedStars()
+    const stars = new RedStars(80)
 
     const scalar = 17
 

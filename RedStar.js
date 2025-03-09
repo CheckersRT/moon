@@ -1,7 +1,9 @@
 import * as THREE from "three"
+import Stars from "./Stars"
+
 
 export default class RedStars extends THREE.Object3D {
-    constructor() {
+    constructor(numStars) {
         super()
         this.starParams = {
             emissiveIntensity: 6,
@@ -9,7 +11,7 @@ export default class RedStars extends THREE.Object3D {
             roughness: 1,
             metalness: 0,
         }
-        this.numStars = 80
+        this.numStars = numStars
         this.points = 5
         this.extrudeSettings = {
             depth: 0.005, 
@@ -32,28 +34,30 @@ export default class RedStars extends THREE.Object3D {
         this.material.roughness = this.starParams.roughness
         this.material.metalness = this.starParams.metalness
 
-        this.stars = new THREE.InstancedMesh(this.geometry, this.material, this.numStars)
-        this.stars.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Allow frequent updates
+        this.stars = new Stars(this.geometry, this.material, this.numStars)
+        console.log("stars", this.stars)
 
-        this.dummyStars = []
-        for (let i = 0; i < this.numStars; i++) {
-            const dummy = new THREE.Object3D()
-            const direction = new THREE.Vector3().randomDirection().multiplyScalar(this.starParams.scalar)
-            console.log(direction, "direction")
-            dummy.position.set(
-                direction.x,
-                direction.y,
-                direction.z
-            )
-            dummy.lookAt(new THREE.Vector3(0, 0, 0));
-            dummy.updateMatrix()
-            this.stars.setMatrixAt(i, dummy.matrix)
-            this.dummyStars.push(dummy)
-        }
+        // this.stars = new THREE.InstancedMesh(this.geometry, this.material, this.numStars)
+        // this.stars.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Allow frequent updates
 
-        this.stars.instanceMatrix.needsUpdate = true
-        this.stars.layers.enable(1)
-        this.stars.lookAt(new THREE.Vector3(0, 0, 0))
+        // this.dummyStars = []
+        // for (let i = 0; i < this.numStars; i++) {
+        //     const dummy = new THREE.Object3D()
+        //     const direction = new THREE.Vector3().randomDirection().multiplyScalar(this.starParams.scalar)
+        //     console.log(direction, "direction")
+        //     dummy.position.set(
+        //         direction.x,
+        //         direction.y,
+        //         direction.z
+        //     )
+        //     dummy.lookAt(new THREE.Vector3(0, 0, 0));
+        //     dummy.updateMatrix()
+        //     this.stars.setMatrixAt(i, dummy.matrix)
+        //     this.dummyStars.push(dummy)
+        // }
+
+        // this.stars.instanceMatrix.needsUpdate = true
+        // this.stars.layers.enable(1)
         this.add(this.stars)
 
         return this
@@ -64,10 +68,10 @@ export default class RedStars extends THREE.Object3D {
 
         const maxDistance = 6;
         const destVector = new THREE.Vector3().randomDirection().multiplyScalar(maxDistance);
-        const startPosition = this.dummyStars[index].position.clone()
+        const startPosition = this.stars.dummyStars[index].position.clone()
         const duration = 700; 
         
-        this.shootingStar = this.dummyStars[index]
+        this.shootingStar = this.stars.dummyStars[index]
         this.shootingParams = {
             destVector,
             startPosition,
